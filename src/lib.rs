@@ -1,5 +1,5 @@
 use napi::{
-    threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
+    threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction},
     CallContext, Env, JsFunction, JsObject, JsUndefined,
 };
 use napi_derive::{js_function, module_exports};
@@ -28,23 +28,6 @@ fn constructor(ctx: CallContext) -> napi::Result<JsUndefined> {
 
     ctx.env.wrap(&mut this, obj)?;
     ctx.env.get_undefined()
-}
-
-#[js_function(0)]
-fn call(ctx: CallContext) -> napi::Result<JsObject> {
-    let this: JsObject = ctx.this_unchecked();
-    let obj: &A = ctx.env.unwrap(&this)?;
-    let obj: A = obj.clone();
-
-    ctx.env.execute_tokio_future(
-        async move {
-            obj.cb
-                .call(Ok(String::from("foo")), ThreadsafeFunctionCallMode::NonBlocking);
-
-            Ok(())
-        },
-        |&mut env, _| env.get_undefined(),
-    )
 }
 
 #[module_exports]
